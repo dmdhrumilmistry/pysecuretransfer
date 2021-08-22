@@ -125,9 +125,7 @@ class Server:
         if os.name == 'nt':
             file_name = file_path.split('\\')[-1]
         else:
-            filename = file_path.split('/')
-
-        # print(file_name)
+            file_name = file_path.split('/')[-1]
 
         print(f'[*] Sending {file_name}')
         with open(file_path, "rb") as f:
