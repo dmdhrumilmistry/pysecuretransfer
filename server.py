@@ -7,8 +7,7 @@ from cryptography.fernet import Fernet
 
 SEPARATOR = "<D|M>"
 BUFFER_SIZE = 4096
-# FILE_PATH = r'path_to_file'
-FILE_PATH = r'C:\Users\there\Downloads\QBtt1.pdf'
+FILE_PATH = r'path_to_file'
 LINE_SIZE = 60
 
 class Users:

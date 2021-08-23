@@ -7,9 +7,8 @@ from cryptography.fernet import Fernet
 
 SEPARATOR = "<D|M>"
 BUFFER_SIZE = 4096
-# SAVE_PATH = r'file_save_location'
-SAVE_PATH = r'C:\Users\there\Desktop'
-LINE_SIZE = 50
+SAVE_PATH = r'file_save_location'
+LINE_SIZE = 60
 
 
 class Client:
