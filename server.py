@@ -1,5 +1,4 @@
 import socket, os, base64, json
-from typing_extensions import ParamSpecArgs
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -141,6 +140,8 @@ class Server:
         print(f'[*] Sending {file_name}')
         with open(file_path, "rb") as f:
             file_data = f.read()
+            # encode file data to base64 format 
+            file_data = base64.b64encode(file_data)
         
         # encrypt file data
         # enc_file_data = self.users.encrypt_data(self.passwd_hash, file_data).decode('utf-8')
@@ -149,10 +150,10 @@ class Server:
         # Creating packet
         # packet = transfer_send (sep) filename (sep) data
         # packet = f'transfer_send{SEPARATOR}{file_name}{SEPARATOR}{str(enc_file_data)}'
-        packet = f'transfer_send{SEPARATOR}{file_name}{SEPARATOR}{str(file_data)}'
+        packet = f'transfer_send{SEPARATOR}{file_name}{SEPARATOR}{str(file_data, encoding="utf-8")}'
 
         self.send(packet)
-        print(packet)
+        # print(packet)
         
         if self.receive() == 'transfer_completed':
             return True
@@ -175,10 +176,10 @@ class Server:
             print(f'{self.conn_addr} Authenticated successfully')
             self.send('Authenticated')
 
-            # if self.send_file(FILE_PATH):
-                # print(f'[*] File {FILE_PATH} successfully transferred.')
-            # else:
-                # print(f'[!] Transferred Failed')
+            if self.send_file(FILE_PATH):
+                print(f'[*] File {FILE_PATH} successfully transferred.')
+            else:
+                print(f'[!] Transferred Failed')
                 
         else:
             # close connection if user is not authenticated

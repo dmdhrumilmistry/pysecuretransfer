@@ -1,3 +1,4 @@
+from inspect import EndOfBlock
 import socket, sys, os, base64, json
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
@@ -89,7 +90,9 @@ class Client:
     def save_file(self, file_name:str, data:bytes):
         '''receive file over the connection'''
         # packet = transfer_send (sep) filename (sep) data
-        
+        # if type(data) == str:
+            # data = bytes(data, encoding='utf-8')
+
         # create file save path 
         file_name = os.path.join(SAVE_PATH, file_name)
 
@@ -100,6 +103,9 @@ class Client:
         with open(file_name, "wb") as f:
             # decrypted_file_data = self.decrypt_data(data)
             # f.write(decrypted_file_data)
+
+            # decode base64 data
+            data = base64.b64decode(data)
             f.write(data)
         # inform server that the transfer has been completed
         print('[*] Transfer Complete')
@@ -124,7 +130,7 @@ class Client:
                 message = self.receive()
                 print(message)
                 # list of strings
-                # message_list = message.split(SEPARATOR)
+                message_list = message.split(SEPARATOR)
 
                 # authenticate user
                 if message == 'exit':
@@ -147,10 +153,10 @@ class Client:
                 # receive file from server peer
 
                 # bug: accepts only part of the packet, and saves that chunk
-                # elif 'transfer_send' == message_list[0] :
-                #     print('[*] Packet Received')
-                #     self.save_file(file_name=message_list[1], data=message_list[2].encode('utf-8'))
-                #     break
+                elif 'transfer_send' == message_list[0] :
+                    print('[*] Packet Received')
+                    self.save_file(file_name=message_list[1], data=message_list[2].encode('utf-8'))
+                    break
 
         except KeyboardInterrupt:
             print('[!] ctrl+c detected! Exiting Progam')
