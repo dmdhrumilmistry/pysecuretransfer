@@ -101,11 +101,11 @@ class Client:
         print(f'[*] Receiving File {file_name}:')
 
         with open(file_name, "wb") as f:
-            # decrypted_file_data = self.decrypt_data(data)
-            # f.write(decrypted_file_data)
 
             # decode base64 data
-            data = base64.b64decode(data)
+            decrypted_file_data = self.decrypt_data(data)
+            # data = base64.b64decode(data)
+            data = base64.b64decode(decrypted_file_data)
             f.write(data)
         # inform server that the transfer has been completed
         print('[*] Transfer Complete')

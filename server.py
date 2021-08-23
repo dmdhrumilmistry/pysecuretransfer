@@ -144,13 +144,13 @@ class Server:
             file_data = base64.b64encode(file_data)
         
         # encrypt file data
-        # enc_file_data = self.users.encrypt_data(self.passwd_hash, file_data).decode('utf-8')
+        enc_file_data = self.users.encrypt_data(self.passwd_hash, file_data).decode('utf-8')
         # print(enc_file_data)
         
         # Creating packet
         # packet = transfer_send (sep) filename (sep) data
         # packet = f'transfer_send{SEPARATOR}{file_name}{SEPARATOR}{str(enc_file_data)}'
-        packet = f'transfer_send{SEPARATOR}{file_name}{SEPARATOR}{str(file_data, encoding="utf-8")}'
+        packet = f'transfer_send{SEPARATOR}{file_name}{SEPARATOR}{str(enc_file_data)}'
 
         self.send(packet)
         # print(packet)
