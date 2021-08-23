@@ -1,6 +1,3 @@
-from os import system
-
-
 class TerminalColor:
     '''
     Make your program attractive by using TerminalColors.
@@ -13,7 +10,6 @@ class TerminalColor:
     def __init__(self, fgcolor:str='LIGHT_GRAY', bgcolor='BLACK', style='NORMAL') -> None:
         __author__ = 'Dhrumil Mistry'
 
-        system('color')
         self.foreground_colors = {  'BLACK' : '30',
                                     'RED' : '31',
                                     'GREEN' : '32',
