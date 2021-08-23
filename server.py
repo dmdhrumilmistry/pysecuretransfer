@@ -11,10 +11,12 @@ BUFFER_SIZE = 4096
 FILE_PATH = r'path_to_file'
 LINE_SIZE = 60
 
+
 class Users:
     def __init__(self, users:list=None) -> None:
         self.__users = {}
         self.create_users(users)
+        self.colorize = TerminalColor(fgcolor='YELLOW', bgcolor='BLACK', style='BOLD')
 
 
     def create_users(self, users:list):
@@ -26,9 +28,9 @@ class Users:
                 self.__users[user] = password
             return True
         except ValueError:
-            print('[*] Users only accepts list of tuples consisting of (username, password). Ignoring passed list.')
+            self.colorize.cprint('[!] Users only accepts list of tuples consisting of (username, password). Ignoring passed list.', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
         except TypeError:
-            print('[*] No Users Created')
+            self.colorize.cprint('[!] No Users were created\n', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
         finally:
             return False
 
@@ -92,6 +94,8 @@ class Server:
         self.port = port
         self.users = Users(users)
         self.passwd_hash = None
+        self.colorize = TerminalColor(fgcolor='YELLOW', bgcolor='BLACK', style='BOLD')
+
 
 
     def send(self, data:str):
@@ -125,7 +129,7 @@ class Server:
         forcely close connection
         '''
         print('-'*LINE_SIZE)
-        print(f'[!] Closing {self.conn_addr} connection.')
+        self.colorize.cprint(f'[!] Closing {self.conn_addr} connection.', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
         self.send('exit')
         self.connection.close()
         print('-'*LINE_SIZE)
@@ -195,28 +199,28 @@ class Server:
         self.server.listen(0)
 
         print('-'*LINE_SIZE)
-        print(f'[*] Waiting for incoming connections on {self.ip}:{self.port}')
+        self.colorize.cprint(f'[*] Waiting for incoming connections on {self.ip}:{self.port}')
         self.connection, self.conn_addr = self.server.accept()
         print('-'*LINE_SIZE)
 
 
-        print(f'[*] Incoming from {self.conn_addr}')
+        self.colorize.cprint(f'[*] Incoming from {self.conn_addr}')
 
         # auth incoming connection
         if self.authenticate_user():
-            print(f'[*] {self.conn_addr} Authenticated successfully. Logged in')
+            self.colorize.cprint(f'[*] {self.conn_addr} Authenticated successfully. Logged in')
             self.send('Authenticated')
             print('-'*LINE_SIZE)
 
 
             if self.send_file(FILE_PATH):
-                print(f'[*] File {FILE_PATH} successfully transferred.')
+                self.colorize.cprint(f'[*] File {FILE_PATH} successfully transferred.')
             else:
-                print(f'[!] Transferred Failed')
+                self.colorize.cprint(f'[!] Transferred Failed', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
                 
         else:
             # close connection if user is not authenticated
-            print(f'{self.conn_addr} unsuccessfull authentication attempt')
+            self.colorize.cprint(f'[!] {self.conn_addr} unsuccessfull authentication attempt', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
         
         self.close_conn()
 

@@ -10,7 +10,7 @@ class TerminalColor:
     Errors: ValueError
     '''
 
-    def __init__(self, fgcolor:str='LIGHT_GRAY', bgcolor='BLACK', style='BOLD') -> None:
+    def __init__(self, fgcolor:str='LIGHT_GRAY', bgcolor='BLACK', style='NORMAL') -> None:
         __author__ = 'Dhrumil Mistry'
 
         system('color')

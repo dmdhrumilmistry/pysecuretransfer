@@ -17,6 +17,7 @@ class Client:
         self.ip = ip
         self.port = port
         self.passwd_hash = None
+        self.colorize = TerminalColor(fgcolor='YELLOW', bgcolor='BLACK', style='BOLD')
 
 
     def __gen_key_from_pass(self, passwd:str)->bytes:
@@ -24,7 +25,6 @@ class Client:
         Generates key from password.
         '''
        
-        # TODO: change salt 
         salt = b'SecretSalt'  
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -101,7 +101,7 @@ class Client:
         file_name = os.path.join(SAVE_PATH, file_name)
 
         # Start receiving file packets
-        print(f'[*] Receiving File {file_name}:')
+        self.colorize.cprint(f'[*] Receiving File {file_name}:')
 
         with open(file_name, "wb") as f:
             decrypted_file_data = self.decrypt_data(data)
@@ -111,7 +111,7 @@ class Client:
             f.write(data)
 
         # inform server that the transfer has been completed
-        print('[*] Transfer Complete')
+        self.colorize.cprint('[*] Transfer Complete')
         self.send('transfer_completed')
 
 
@@ -121,7 +121,7 @@ class Client:
         '''
         print()
         print('-'*LINE_SIZE)
-        print(f'[*] Trying to connect to {self.ip}:{self.port}')
+        self.colorize.cprint(f'[*] Trying to connect to {self.ip}:{self.port}', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
         print('-'*LINE_SIZE)
 
 
@@ -135,10 +135,10 @@ class Client:
                 self.connection.connect((self.ip, self.port))
                 connected = True
             except ConnectionRefusedError:
-                print('\r[*] Peer seems to be offline.', end='')
+                self.colorize.cprint('\r[*] Peer seems to be offline.', end='', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
         
         print()
-        print('[*] Connection Established')
+        self.colorize.cprint('[*] Connection Established')
         print('-'*LINE_SIZE)
 
 
@@ -151,8 +151,8 @@ class Client:
 
                 # authenticate user
                 if message == 'exit':
-                    print('[!] Connection closed by remote host.')
-                    print('EXIT MESSAGE :', message)
+                    self.colorize.cprint('[!] Connection closed by remote host.', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
+                    print()
                     self.connection.close()
                     sys.exit()
 
@@ -165,22 +165,22 @@ class Client:
 
                     auth_result = self.receive()
                     if 'exit' == auth_result:
-                        print('[!] Invalid Details. Exiting.')
+                        self.colorize.cprint('[!] Invalid Details. Exiting.', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
                         break
                     else:
-                        print('[*] Authenticated')
+                        self.colorize.cprint('[*] Authenticated')
                         self.passwd_hash = self.__gen_key_from_pass(passwd)
                         print('-'*LINE_SIZE)
 
                 # receive file from server peer
                 elif 'transfer_send' == message_list[0] :
-                    print('[*] Encrypted File Incoming')
+                    self.colorize.cprint('[*] Encrypted File Incoming')
                     self.save_file(file_name=message_list[1], data=message_list[2].encode('utf-8'))
                     break
 
 
         except KeyboardInterrupt:
-            print('\r\n[!] ctrl+c detected! Exiting Progam')
+            self.colorize.cprint('\r\n[!] ctrl+c detected! Exiting Progam')
             sys.exit()
 
         finally:
