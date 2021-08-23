@@ -7,8 +7,7 @@ from cryptography.fernet import Fernet
 
 SEPARATOR = "<D|M>"
 BUFFER_SIZE = 4096
-# FILE_PATH = r'path_of_file'
-FILE_PATH = r'C:\Users\there\Downloads\test.jpg'
+FILE_PATH = r'path_to_file'
 
 
 class Users:
@@ -189,7 +188,7 @@ class Server:
 
 
 if __name__=='__main__':
-    IP = '127.0.0.1'
+    IP = '10.7.1.199'
     PORT = 4444
     USERS = [('1234','1234'),]
     server = Server(IP, PORT, USERS)

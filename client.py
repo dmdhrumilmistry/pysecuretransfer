@@ -1,4 +1,3 @@
-from inspect import EndOfBlock
 import socket, sys, os, base64, json
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
@@ -8,7 +7,7 @@ from cryptography.fernet import Fernet
 
 SEPARATOR = "<D|M>"
 BUFFER_SIZE = 4096
-SAVE_PATH = r'C:\Users\there\Desktop'
+SAVE_PATH = r'file_save_location'
 
 
 class Client:
