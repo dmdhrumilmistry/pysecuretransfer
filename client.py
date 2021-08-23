@@ -7,7 +7,9 @@ from cryptography.fernet import Fernet
 
 SEPARATOR = "<D|M>"
 BUFFER_SIZE = 4096
-SAVE_PATH = r'file_save_location'
+# SAVE_PATH = r'file_save_location'
+SAVE_PATH = r'C:\Users\there\Desktop'
+LINE_SIZE = 50
 
 
 class Client:
@@ -64,71 +66,87 @@ class Client:
 
 
     def send(self, data:str):
+        '''
+        sends data serially
+        '''
         if type(data) == bytes:
             data = str(data, encoding='utf-8')
 
         json_data = json.dumps(data)
         bytes_json_data = bytes(json_data, encoding='utf-8')
-        print('send:', bytes_json_data)
         self.connection.send(bytes_json_data)
 
 
     def receive(self):
-        print('in receive')
+        '''
+        receives data serially
+        '''
         bytes_json_data = b''
         while True:
             try:
                 bytes_json_data += self.connection.recv(BUFFER_SIZE)
                 data = json.loads(bytes_json_data)
-                # print('Listener Rec: ',data)
                 return data
             except json.JSONDecodeError:
                 continue
 
 
     def save_file(self, file_name:str, data:bytes):
-        '''receive file over the connection'''
+        '''
+        receive and save file over the connection
+        '''
         # packet = transfer_send (sep) filename (sep) data
-        # if type(data) == str:
-            # data = bytes(data, encoding='utf-8')
 
         # create file save path 
         file_name = os.path.join(SAVE_PATH, file_name)
 
-        print(file_name)
         # Start receiving file packets
         print(f'[*] Receiving File {file_name}:')
 
         with open(file_name, "wb") as f:
+            decrypted_file_data = self.decrypt_data(data)
 
             # decode base64 data
-            decrypted_file_data = self.decrypt_data(data)
-            # data = base64.b64decode(data)
             data = base64.b64decode(decrypted_file_data)
             f.write(data)
+
         # inform server that the transfer has been completed
         print('[*] Transfer Complete')
         self.send('transfer_completed')
 
 
     def start(self):
+        '''
+        start client
+        '''
+        print()
+        print('-'*LINE_SIZE)
+        print(f'[*] Trying to connect to {self.ip}:{self.port}')
+        print('-'*LINE_SIZE)
+
+
         # create socket for connection and connect to server
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
+
         # try to connect to the server
-        try:
-            self.connection.connect((self.ip, self.port))
-        except ConnectionRefusedError:
-            print('\r[*] Peer seems to be offline.', end='')
+        connected = False
+        while not connected:
+            try:
+                self.connection.connect((self.ip, self.port))
+                connected = True
+            except ConnectionRefusedError:
+                print('\r[*] Peer seems to be offline.', end='')
         
         print()
         print('[*] Connection Established')
+        print('-'*LINE_SIZE)
+
 
         try:
             while True:
+
                 message = self.receive()
-                print(message)
-                # list of strings
+                # split string to get data 
                 message_list = message.split(SEPARATOR)
 
                 # authenticate user
@@ -143,27 +161,33 @@ class Client:
                     self.send(username)
                     passwd = input('[+] Enter your password: ')
                     self.send(passwd)
+                    print('-'*LINE_SIZE)
+
                     auth_result = self.receive()
-                    if 'exit' != auth_result:
+                    if 'exit' == auth_result:
+                        print('[!] Invalid Details. Exiting.')
+                        break
+                    else:
                         print('[*] Authenticated')
                         self.passwd_hash = self.__gen_key_from_pass(passwd)
-
+                        print('-'*LINE_SIZE)
 
                 # receive file from server peer
-
-                # bug: accepts only part of the packet, and saves that chunk
                 elif 'transfer_send' == message_list[0] :
-                    print('[*] Packet Received')
+                    print('[*] Encrypted File Incoming')
                     self.save_file(file_name=message_list[1], data=message_list[2].encode('utf-8'))
                     break
 
+
         except KeyboardInterrupt:
-            print('[!] ctrl+c detected! Exiting Progam')
+            print('\r\n[!] ctrl+c detected! Exiting Progam')
             sys.exit()
 
         finally:
             self.connection.close()
+            print('-'*LINE_SIZE)
 
+            
 
 if __name__ == '__main__':
     IP = '127.0.0.1'

@@ -7,15 +7,20 @@ from cryptography.fernet import Fernet
 
 SEPARATOR = "<D|M>"
 BUFFER_SIZE = 4096
-FILE_PATH = r'path_to_file'
-
+# FILE_PATH = r'path_to_file'
+FILE_PATH = r'C:\Users\there\Downloads\QBtt1.pdf'
+LINE_SIZE = 60
 
 class Users:
     def __init__(self, users:list=None) -> None:
         self.__users = {}
         self.create_users(users)
 
+
     def create_users(self, users:list):
+        '''
+        create users for authentication using passed list[tuple(username, password)]
+        '''
         try:
             for user, password in users:
                 self.__users[user] = password
@@ -41,8 +46,6 @@ class Users:
         '''
         Generates key from password.
         '''
-
-        # TODO: change salt 
         salt = b'SecretSalt'  
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
@@ -84,7 +87,7 @@ class Users:
 
 
 class Server:
-    def __init__(self, ip:str='127.0.0.1',port:int=4444, users:list=None) -> None:
+    def __init__(self, ip:str='127.0.0.1', port:int=4444, users:list=None) -> None:
         self.ip = ip
         self.port = port
         self.users = Users(users)
@@ -92,17 +95,21 @@ class Server:
 
 
     def send(self, data:str):
+        '''
+        sends data serially
+        '''
         if type(data) == bytes:
             data = str(data, encoding='utf-8')
 
         json_data = json.dumps(data)
         bytes_json_data = bytes(json_data, encoding='utf-8')
-        print('send:', bytes_json_data)
         self.connection.send(bytes_json_data)
 
 
     def receive(self):
-        print('in receive')
+        '''
+        receives data serially
+        '''
         bytes_json_data = b''
         while True:
             try:
@@ -114,12 +121,26 @@ class Server:
 
 
     def close_conn(self):
+        '''
+        forcely close connection
+        '''
+        print('-'*LINE_SIZE)
+        print(f'[!] Closing {self.conn_addr} connection.')
         self.send('exit')
         self.connection.close()
+        print('-'*LINE_SIZE)
+
+
 
 
     def authenticate_user(self):
+        '''
+        authenticate user before transferring file
+        '''
+        # send authentication request
         self.send('auth_user')
+
+        # accept username and password
         username = self.receive()
         passwd = self.receive()
 
@@ -130,7 +151,10 @@ class Server:
 
 
     def send_file(self, file_path:str):
-        
+        '''
+        sends file securely.
+        '''
+
         if os.name == 'nt':
             file_name = file_path.split('\\')[-1]
         else:
@@ -139,41 +163,51 @@ class Server:
         print(f'[*] Sending {file_name}')
         with open(file_path, "rb") as f:
             file_data = f.read()
+
             # encode file data to base64 format 
             file_data = base64.b64encode(file_data)
         
         # encrypt file data
         enc_file_data = self.users.encrypt_data(self.passwd_hash, file_data).decode('utf-8')
-        # print(enc_file_data)
         
         # Creating packet
         # packet = transfer_send (sep) filename (sep) data
-        # packet = f'transfer_send{SEPARATOR}{file_name}{SEPARATOR}{str(enc_file_data)}'
         packet = f'transfer_send{SEPARATOR}{file_name}{SEPARATOR}{str(enc_file_data)}'
 
+        # send packet over network
         self.send(packet)
-        # print(packet)
         
+        # receive acknowledgement
         if self.receive() == 'transfer_completed':
             return True
         return False
 
 
     def start(self):
+        '''
+        starts server
+        '''
+        print()
+
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.bind((self.ip, self.port))
         self.server.listen(0)
-        print(f'[*] Waiting for incoming connections on {self.ip}:{self.port}')
 
+        print('-'*LINE_SIZE)
+        print(f'[*] Waiting for incoming connections on {self.ip}:{self.port}')
         self.connection, self.conn_addr = self.server.accept()
+        print('-'*LINE_SIZE)
+
 
         print(f'[*] Incoming from {self.conn_addr}')
 
         # auth incoming connection
         if self.authenticate_user():
-            print(f'{self.conn_addr} Authenticated successfully')
+            print(f'[*] {self.conn_addr} Authenticated successfully. Logged in')
             self.send('Authenticated')
+            print('-'*LINE_SIZE)
+
 
             if self.send_file(FILE_PATH):
                 print(f'[*] File {FILE_PATH} successfully transferred.')
@@ -187,10 +221,13 @@ class Server:
         self.close_conn()
 
 
+
 if __name__=='__main__':
-    IP = '10.7.1.199'
+    IP = '127.0.0.1'
     PORT = 4444
-    USERS = [('1234','1234'),]
+    USERS = [
+        ('1234','1234'),
+        ]
     server = Server(IP, PORT, USERS)
     server.start()
     
