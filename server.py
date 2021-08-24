@@ -3,13 +3,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.fernet import Fernet
-from colors import TerminalColor
-
-
-SEPARATOR = "<D|M>"
-BUFFER_SIZE = 4096
-FILE_PATH = r'path_to_file'
-LINE_SIZE = 60
+from PyTerminalColor.TerminalColor import TerminalColor
 
 
 class Users:
@@ -89,7 +83,12 @@ class Users:
 
 
 class Server:
-    def __init__(self, ip:str='127.0.0.1', port:int=4444, users:list=None) -> None:
+    def __init__(self, ip:str='127.0.0.1', port:int=4444, users:list=None, file_path:str='') -> None:
+        self.SEPARATOR = "<D|M>"
+        self.BUFFER_SIZE = 4096
+        self.FILE_PATH = file_path
+        self.LINE_SIZE = 60
+
         self.ip = ip
         self.port = port
         self.users = Users(users)
@@ -117,7 +116,7 @@ class Server:
         bytes_json_data = b''
         while True:
             try:
-                bytes_json_data += self.connection.recv(BUFFER_SIZE)
+                bytes_json_data += self.connection.recv(self.BUFFER_SIZE)
                 data = json.loads(bytes_json_data)
                 return data
             except json.JSONDecodeError:
@@ -128,11 +127,11 @@ class Server:
         '''
         forcely close connection
         '''
-        print('-'*LINE_SIZE)
+        print('-'*self.LINE_SIZE)
         self.colorize.cprint(f'[!] Closing {self.conn_addr} connection.', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
         self.send('exit')
         self.connection.close()
-        print('-'*LINE_SIZE)
+        print('-'*self.LINE_SIZE)
 
 
 
@@ -154,18 +153,18 @@ class Server:
         return False
 
 
-    def send_file(self, file_path:str):
+    def send_file(self):
         '''
         sends file securely.
         '''
 
         if os.name == 'nt':
-            file_name = file_path.split('\\')[-1]
+            file_name = self.FILE_PATH.split('\\')[-1]
         else:
-            file_name = file_path.split('/')[-1]
+            file_name = self.FILE_PATH.split('/')[-1]
 
-        print(f'[*] Sending {file_name}')
-        with open(file_path, "rb") as f:
+        self.colorize.cprint(f'[*] Sending {file_name}', use_default=False, fgcolor='YELLOW')
+        with open(self.FILE_PATH, "rb") as f:
             file_data = f.read()
 
             # encode file data to base64 format 
@@ -176,7 +175,7 @@ class Server:
         
         # Creating packet
         # packet = transfer_send (sep) filename (sep) data
-        packet = f'transfer_send{SEPARATOR}{file_name}{SEPARATOR}{str(enc_file_data)}'
+        packet = f'transfer_send{self.SEPARATOR}{file_name}{self.SEPARATOR}{str(enc_file_data)}'
 
         # send packet over network
         self.send(packet)
@@ -198,23 +197,23 @@ class Server:
         self.server.bind((self.ip, self.port))
         self.server.listen(0)
 
-        print('-'*LINE_SIZE)
+        print('-'*self.LINE_SIZE)
         self.colorize.cprint(f'[*] Waiting for incoming connections on {self.ip}:{self.port}')
         self.connection, self.conn_addr = self.server.accept()
-        print('-'*LINE_SIZE)
+        print('-'*self.LINE_SIZE)
 
 
         self.colorize.cprint(f'[*] Incoming from {self.conn_addr}')
 
         # auth incoming connection
         if self.authenticate_user():
-            self.colorize.cprint(f'[*] {self.conn_addr} Authenticated successfully. Logged in')
+            self.colorize.cprint(f'[*] {self.conn_addr} Authenticated successfully. Logged in',use_default=False, fgcolor='GREEN', style='BOLD')
             self.send('Authenticated')
-            print('-'*LINE_SIZE)
+            print('-'*self.LINE_SIZE)
 
 
-            if self.send_file(FILE_PATH):
-                self.colorize.cprint(f'[*] File {FILE_PATH} successfully transferred.')
+            if self.send_file():
+                self.colorize.cprint(f'[*] File {self.FILE_PATH} successfully transferred.', use_default=False, fgcolor='GREEN', style='ITALIC')
             else:
                 self.colorize.cprint(f'[!] Transferred Failed', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
                 
@@ -227,11 +226,12 @@ class Server:
 
 
 if __name__=='__main__':
+    FILE_PATH = r'C:\Users\there\Downloads\QBtt1.pdf'
     IP = '127.0.0.1'
     PORT = 4444
     USERS = [
         ('1234','1234'),
         ]
-    server = Server(IP, PORT, USERS)
+    server = Server(IP, PORT, USERS, FILE_PATH)
     server.start()
     

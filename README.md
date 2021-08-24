@@ -30,13 +30,13 @@ Transfer your files securely over Network
   ## 
   ### Following values needs to changed before using pysecuretransfer
   - In `server.py`
-    - FILE_PATH
+    - self.FILE_PATH
     - IP
     - PORT
     - salt
 
   - In `client.py`
-    - SAVE_FILE_PATH
+    - SAVE_self.FILE_PATH
     - IP
     - PORT
     - salt

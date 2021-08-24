@@ -3,17 +3,19 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.fernet import Fernet
-from colors import TerminalColor
+from PyTerminalColor.TerminalColor import TerminalColor
 
 
-SEPARATOR = "<D|M>"
-BUFFER_SIZE = 4096
-SAVE_PATH = r'file_save_location'
-LINE_SIZE = 60
 
 
 class Client:
-    def __init__(self, ip:str='127.0.0.1', port:int=4444) -> None:
+    def __init__(self, ip:str='127.0.0.1', port:int=4444, save_path:str='') -> None:
+        self.SEPARATOR = "<D|M>"
+        self.BUFFER_SIZE = 4096
+        self.SAVE_PATH = save_path
+        self.LINE_SIZE = 60
+
+
         self.ip = ip
         self.port = port
         self.passwd_hash = None
@@ -84,7 +86,7 @@ class Client:
         bytes_json_data = b''
         while True:
             try:
-                bytes_json_data += self.connection.recv(BUFFER_SIZE)
+                bytes_json_data += self.connection.recv(self.BUFFER_SIZE)
                 data = json.loads(bytes_json_data)
                 return data
             except json.JSONDecodeError:
@@ -98,7 +100,7 @@ class Client:
         # packet = transfer_send (sep) filename (sep) data
 
         # create file save path 
-        file_name = os.path.join(SAVE_PATH, file_name)
+        file_name = os.path.join(self.SAVE_PATH, file_name)
 
         # Start receiving file packets
         self.colorize.cprint(f'[*] Receiving File {file_name}:')
@@ -111,7 +113,7 @@ class Client:
             f.write(data)
 
         # inform server that the transfer has been completed
-        self.colorize.cprint('[*] Transfer Complete')
+        self.colorize.cprint('[*] Transfer Complete', use_default=False, fgcolor='GREEN', style='BOLD')
         self.send('transfer_completed')
 
 
@@ -120,9 +122,9 @@ class Client:
         start client
         '''
         print()
-        print('-'*LINE_SIZE)
+        print('-'*self.LINE_SIZE)
         self.colorize.cprint(f'[*] Trying to connect to {self.ip}:{self.port}', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
-        print('-'*LINE_SIZE)
+        print('-'*self.LINE_SIZE)
 
 
         # create socket for connection and connect to server
@@ -138,8 +140,8 @@ class Client:
                 self.colorize.cprint('\r[*] Peer seems to be offline.', end='', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
         
         print()
-        self.colorize.cprint('[*] Connection Established')
-        print('-'*LINE_SIZE)
+        self.colorize.cprint('[*] Connection Established', use_default=False, fgcolor='GREEN', style='ITALIC')
+        print('-'*self.LINE_SIZE)
 
 
         try:
@@ -147,7 +149,7 @@ class Client:
 
                 message = self.receive()
                 # split string to get data 
-                message_list = message.split(SEPARATOR)
+                message_list = message.split(self.SEPARATOR)
 
                 # authenticate user
                 if message == 'exit':
@@ -161,16 +163,16 @@ class Client:
                     self.send(username)
                     passwd = input('[+] Enter your password: ')
                     self.send(passwd)
-                    print('-'*LINE_SIZE)
+                    print('-'*self.LINE_SIZE)
 
                     auth_result = self.receive()
                     if 'exit' == auth_result:
                         self.colorize.cprint('[!] Invalid Details. Exiting.', use_default=False, fgcolor='YELLOW', bgcolor='RED', style='BOLD')
                         break
                     else:
-                        self.colorize.cprint('[*] Authenticated')
+                        self.colorize.cprint('[*] Authenticated', use_default=False, fgcolor='GREEN', style='BOLD')
                         self.passwd_hash = self.__gen_key_from_pass(passwd)
-                        print('-'*LINE_SIZE)
+                        print('-'*self.LINE_SIZE)
 
                 # receive file from server peer
                 elif 'transfer_send' == message_list[0] :
@@ -185,12 +187,13 @@ class Client:
 
         finally:
             self.connection.close()
-            print('-'*LINE_SIZE)
+            print('-'*self.LINE_SIZE)
 
             
 
 if __name__ == '__main__':
+    SAVE_PATH = r'C:\Users\there\Desktop'
     IP = '127.0.0.1'
     PORT = 4444
-    client = Client(IP, PORT)
+    client = Client(IP, PORT, SAVE_PATH)
     client.start()
