@@ -7,8 +7,6 @@ Transfer your files securely over Network
    - User Authentication
 
 ##
-
-
 ### Dependencies
 
    **`PySecureTransfer`** is using -
@@ -18,9 +16,9 @@ Transfer your files securely over Network
       - `socket`
       - `base64`
   
-  ##
-  <!-- ## [License](License Link) -->
-  <!-- MIT License -->
+##
+## [License](https://github.com/dmdhrumilmistry/pysecuretransfer/blob/main/LICENSE?raw=true)
+  MIT License
   
   
   ##
