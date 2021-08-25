@@ -41,11 +41,22 @@ Transfer your files securely over Network
 
     > IP, PORT and salt should be same for server and client python file
 
-  ##
-  ## Leave A Star⭐
+## Usage
+   -  Above values needs to be changed
+   -  Start Server
+      ```
+      python server.py
+      ```
+   -  Start Receiver
+      ```
+      python client.py
+      ```
+
+##
+## Leave A Star⭐
 
   
-  ### Connect With Me On:
+### Connect With Me On:
   
   <p align ="left">
     <a href = "https://github.com/dmdhrumilmistry" target="_blank"><img src = "https://img.shields.io/badge/Github-dmdhrumilmistry-333"></a>
