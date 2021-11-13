@@ -226,7 +226,7 @@ class Server:
 
 
 if __name__=='__main__':
-    FILE_PATH = r'C:\Users\there\Downloads\QBtt1.pdf'
+    FILE_PATH = r'path_to_file'
     IP = '127.0.0.1'
     PORT = 4444
     USERS = [
